@@ -1,0 +1,2 @@
+numpy==1.11.1
+-e git+git@github.com:BradyKieffer/SimplexNoise.git@164b999471aa00fee4db5a2bed2417a3a9ce891d#egg=SimplexNoise
