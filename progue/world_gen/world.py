@@ -8,7 +8,7 @@ from ..tiles import *
 THRESHOLDS = {
     TILE_WATER: 0.0,
     TILE_SAND: 0.2,
-    TILE_GROUND: 0.85,
+    TILE_GROUND: 0.75,
     TILE_WALL: 1.0 # For now this is unused
 }
 
@@ -22,10 +22,11 @@ class World(object):
         self.raw_map = world_gen.generate_world(self.width, self.height, self.base)
         self.map = self.create_tile_map(self.raw_map)
         self.actors = []
+        self.player = None
 
     def tile_num_map(self, num):
         if num < THRESHOLDS[TILE_WATER]:
-            return TILES[TILE_WATER]
+            return TILES[TILE_WATER][random.randint(0, len(TILES[TILE_WATER])-1)]
         
         elif num < THRESHOLDS[TILE_SAND]:
             return TILES[TILE_SAND]
@@ -46,7 +47,9 @@ class World(object):
         return res
 
     def tile_at(self, x, y):
-        return self.map[y][x]
+        if self.in_bounds(x, y):
+            return self.map[y][x]
+        return None
 
     def in_bounds(self, x, y):
         if x >= 0 and y >= 0 and x < self.width and y < self.height:

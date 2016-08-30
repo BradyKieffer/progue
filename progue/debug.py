@@ -13,12 +13,12 @@ def print_all_chars():
         i = 1
         for x in xrange(700):
             libtcod.console_put_char(0, i, j, x)
-            j += 1
+            j += 2
             if j > 80:
                 i += 2
                 j = 0
 
-        libtcod.console_put_char(0, i + 2, 1, 177)
+        libtcod.console_put_char(0, i + 2, 1, 247)
         libtcod.console_flush()
 
 if __name__ == '__main__':

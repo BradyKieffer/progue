@@ -8,9 +8,9 @@ class Client(object):
 
     def __init__(self):
         self.font_path = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), 'assets/terminal8x8_aa_as.png')
+            os.path.abspath(__file__)), 'assets/terminal12x12_gs_ro.png')
         libtcod.console_set_custom_font(
-            self.font_path, libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INCOL)
+            self.font_path, libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_ASCII_INROW)
         self.engine = GameEngine(title='progue')
 
     def run(self):

@@ -25,6 +25,7 @@ class GameEngine(object):
         )
 
         self.world = World(width=WORLD_WIDTH, height=WORLD_HEIGHT)
+        
         self.player = Player(
             x=SCREEN_WIDTH / 2,
             y=SCREEN_HEIGHT / 2,
@@ -43,6 +44,7 @@ class GameEngine(object):
             self.title,
             False
         )
+        self.world.player = self.player
 
     def update(self):
         """ Main game loop will go here """

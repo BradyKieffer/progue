@@ -35,7 +35,7 @@ class Actor(object):
         
         if not self.world.actor_at(x=new_x, y=new_y):
             tile = self.world.tile_at(x=new_x, y=new_y)
-            if tile.passable:
+            if tile is not None and tile.passable:
                 self.x = new_x
                 self.y = new_y
                 return True

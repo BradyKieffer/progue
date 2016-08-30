@@ -10,24 +10,37 @@ class Jackal(Actor):
 
 class JackalAI(AI):
     def __init__(self, actor):
-        AI.__init__(self, actor=actor)
+        AI.__init__(self, actor=actor, fov=10.0)
 
     def on_update(self):
-        prob_x = random.random()
-        prob_y = random.random()
-
         mx = my = 0
-        if prob_x > 0.25:
-            if prob_x > 0.75:
+        player = self.actor.world.player
+        if self.actor.distance_to(player) <= self.fov:
+            if player.x > self.actor.x:
                 mx = 1
-            else:
+            elif player.x < self.actor.x:
                 mx = -1
 
-        if prob_y > 0.25:
-            if prob_y > 0.75:
+            if player.y > self.actor.y:
                 my = 1
-            else:
+            elif player.y < self.actor.y:
                 my = -1
 
-        self.actor.move_to(mx=-1, my=-1)
+        else:
+            prob_x = random.random()
+            prob_y = random.random()
+
+            if prob_x > 0.80:
+                if prob_x > 0.9:
+                    mx = 1
+                else:
+                    mx = -1
+
+            if prob_y > 0.80:
+                if prob_y > 0.9:
+                    my = 1
+                else:
+                    my = -1
+
+        self.actor.move_to(mx=mx, my=my)
 
