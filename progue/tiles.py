@@ -14,6 +14,7 @@ class Tile(object):
         self.glyph = glyph
         self.fore_color = fore_color
         self.back_color = back_color
+        self.passable = True
 
 TILES = {
     TILE_GROUND: Tile(glyph=SPARSE_DOTTED_SQUARE, fore_color=libtcod.dark_green,  back_color=libtcod.black),
