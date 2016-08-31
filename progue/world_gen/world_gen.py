@@ -6,30 +6,20 @@ DEFAULT_GAIN = 0.65
 DEFAULT_OCTAVES = 7
 
 
-def generate_world(width, height, chunk_num):
-    world = []
+def generate_world(world, width, height, chunk_width, chunk_height):
+    res = [[Chunk(x=i, y=j, width=chunk_width, height=chunk_height) for i in xrange(width)] for j in xrange(height)]
 
-    for num in xrange(chunk_num):
-        chunk = build_chunk(Chunk(num=num, width=width, height=height))
-        world.append(chunk)
+    for j in xrange(height):
+        for i in xrange(width):
+            (x, y) = world.to_chunk_coords(x=i, y=j)
 
-    return world
+            pos_x = int(i / chunk_width )
+            pos_y = int(j / chunk_height)
 
+            chunk = res[pos_y][pos_x]
+            chunk.raw_map[y][x] = fractal(x=i, y=j, hgrid=width, base=255)
 
-def build_chunk(chunk):
-    for j in xrange(chunk.height):
-        chunk.raw_map.append([])
-
-        for i in xrange(chunk.width):
-            chunk.raw_map[j].append(
-                fractal(
-                    x=i,
-                    y=j,
-                    base=random.randint(0, 255),
-                    hgrid=chunk.width
-                )
-            )
-    return chunk
+    return res
 
 
 def fractal(x, y, hgrid, base, num_octaves=DEFAULT_OCTAVES, lacunarity=DEFAULT_LACUNARITY, gain=DEFAULT_GAIN):

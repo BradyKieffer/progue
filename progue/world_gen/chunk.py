@@ -3,21 +3,22 @@ from progue.tiles import *
 
 # Maxmimum values for tiles to appear
 THRESHOLDS = {
-    TILE_GROUND: 0.75,
     TILE_WATER: 0.0,
     TILE_SAND: 0.2,
+    TILE_GROUND: 0.75,
     TILE_WALL: 1.0  # For now this is unused
 }
 
 
 class Chunk(object):
 
-    def __init__(self, num, width, height):
-        self.num = num
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
         self.width = width
         self.height = height
-        self.raw_map = []
-        self.map = []
+        self.raw_map = [[0 for i in xrange(width)] for j in xrange(height)]
+        self.map = [[0 for i in xrange(width)] for j in xrange(height)]
 
 
     def tile_num_map(self, num):
@@ -32,15 +33,11 @@ class Chunk(object):
 
         else:
             return TILES[TILE_WALL]
-        """
-        return TILES[TILE_DEBUG]
-        """
 
     def create_tile_map(self):
         for j in xrange(len(self.raw_map)):
-            self.map.append([])
             for i in xrange(len(self.raw_map[j])):
-                self.map[j].append(self.tile_num_map(self.raw_map[j][i]))
+                self.map[j][i] = self.tile_num_map(self.raw_map[j][i])
 
     def tile_at(self, x, y):
         if self.in_bounds(x, y):

@@ -23,7 +23,7 @@ class Renderer(object):
             y = j + self.camera_y
             for i in xrange(self.camera_width):
                 x = i + self.camera_x
-
+                
                 tile = world.tile_at(x, y)
                 self.render_tile(i, j, tile)
 
