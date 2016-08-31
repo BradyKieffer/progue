@@ -1,60 +1,25 @@
 """ The world we will create """
-import random
 import world_gen
-from ..tiles import *
-
-
-# Maxmimum values for tiles to appear
-THRESHOLDS = {
-    TILE_WATER: 0.0,
-    TILE_SAND: 0.2,
-    TILE_GROUND: 0.75,
-    TILE_WALL: 1.0 # For now this is unused
-}
+from chunk import Chunk
+from progue.utils.render_utils import *
 
 class World(object):
 
-    def __init__(self, width, height):
+    def __init__(self, width=WORLD_WIDTH, height=WORLD_HEIGHT, chunk_width=CHUNK_WIDTH, chunk_height=CHUNK_HEIGHT):
         self.width = width
         self.height = height
-        self.base = 16 #random.randint(0, 255)
 
-        self.raw_map = world_gen.generate_world(self.width, self.height, self.base)
-        self.map = self.create_tile_map(self.raw_map)
+        self.chunk_width = chunk_width
+        self.chunk_height = chunk_height
+
+        self.num_chunks = self.width / self.chunk_width # Assume this is an integer
+
+        self.map = world_gen.generate_world(self.chunk_width, self.chunk_height, self.num_chunks)
+
+        self.create_tile_map()
+
         self.actors = []
         self.player = None
-
-    def tile_num_map(self, num):
-        if num < THRESHOLDS[TILE_WATER]:
-            return TILES[TILE_WATER][random.randint(0, len(TILES[TILE_WATER])-1)]
-        
-        elif num < THRESHOLDS[TILE_SAND]:
-            return TILES[TILE_SAND]
-
-        elif num < THRESHOLDS[TILE_GROUND]:
-            return TILES[TILE_GROUND]
-        
-        else:
-            return TILES[TILE_WALL]
-
-    def create_tile_map(self, raw_map):
-        res = []
-        for j in xrange(len(raw_map)):
-            res.append([])
-            for i in xrange(len(raw_map[j])):
-                res[j].append(self.tile_num_map(raw_map[j][i]))
-
-        return res
-
-    def tile_at(self, x, y):
-        if self.in_bounds(x, y):
-            return self.map[y][x]
-        return None
-
-    def in_bounds(self, x, y):
-        if x >= 0 and y >= 0 and x < self.width and y < self.height:
-            return True
-        return False 
 
     def actor_at(self, x, y):
         for actor in self.actors:
@@ -62,3 +27,28 @@ class World(object):
                 return actor
 
         return None
+
+    def get_chunk_num(self, x, y):
+        chunk_num = int(y / self.chunk_height)
+
+        return max(0, min(chunk_num, len(self.map)-1))
+
+    def to_chunk_coords(self, x, y):
+        (chunk_x, chunk_y) = (x % self.chunk_width, y % self.chunk_height)
+
+        return (chunk_x, chunk_y)
+
+    def create_tile_map(self):
+        for chunk in self.map:
+            chunk.create_tile_map()
+
+    def tile_at(self, x, y):
+        chunk_num = self.get_chunk_num(x, y)
+        (chunk_x, chunk_y) = self.to_chunk_coords(x, y)
+        chunk = self.map[chunk_num]
+        return chunk.map[chunk_y][chunk_x]
+
+    def in_bounds(self, x, y):
+        if x >= 0 and y >= 0 and x < self.width and y < self.height:
+            return True
+        return False

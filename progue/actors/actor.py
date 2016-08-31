@@ -1,16 +1,29 @@
 """ General actor class """
 import math
-from ..lib import libtcodpy as libtcod
+import copy
+from collections import defaultdict
+from progue.lib import libtcodpy as libtcod
+from progue.utils.actor_constants import *
+
 
 class Actor(object):
-    def __init__(self, x, y, world, glyph, fore_color, back_color, ai):
+
+    def __init__(self, x, y, world, attributes):
+
         self.x = x
         self.y = y
+
         self.world = world
-        self.glyph = glyph
-        self.fore_color = fore_color
-        self.back_color = back_color
-        self.ai = ai
+
+        self.glyph = attributes[GLYPH]
+        self.fore_color = attributes[FORE_COLOR]
+        self.back_color = attributes[BACK_COLOR]
+        self.attributes = copy.deepcopy(attributes[ATTRIBUTES])
+
+        if attributes[AI] is not None:
+            self.ai = attributes[AI](self)
+        else:
+            self.ai = None
 
     def on_update(self):
         if self.ai is not None:
@@ -21,20 +34,22 @@ class Actor(object):
 
         libtcod.console_put_char(0, x, y, self.glyph)
         libtcod.console_set_char_foreground(0, x, y, self.fore_color)
-        libtcod.console_set_char_background(0, x, y, self.back_color, flag=libtcod.BKGND_SET)
+        libtcod.console_set_char_background(
+            0, x, y, self.back_color, flag=libtcod.BKGND_SET)
 
     def move_to(self, mx, my):
         new_x = self.x + mx
         new_y = self.y + my
 
-        if new_x < 0 or new_x > self.world.width:
-            new_x = 0
+        if new_x < 0 or new_x > self.world.width-1:
+            new_x = self.x
 
-        if new_y < 0 or new_y > self.world.height:
-            new_y = 0
-        
+        if new_y < 0 or new_y > self.world.height-1:
+            new_y = self.y
+
         if not self.world.actor_at(x=new_x, y=new_y):
             tile = self.world.tile_at(x=new_x, y=new_y)
+
             if tile is not None and tile.passable:
                 self.x = new_x
                 self.y = new_y
@@ -47,4 +62,4 @@ class Actor(object):
         rel_x = self.x - other.x
         rel_y = self.y - other.y
 
-        return math.sqrt(rel_x*rel_x + rel_y*rel_y)
+        return math.sqrt(rel_x * rel_x + rel_y * rel_y)

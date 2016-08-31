@@ -6,6 +6,8 @@ from actors.player import Player
 from actors.factory import ActorFactory
 from input_proc import InputProcessor
 from utils.render_utils import CAMERA_HEIGHT, CAMERA_WIDTH, SCREEN_WIDTH, SCREEN_HEIGHT, WORLD_HEIGHT, WORLD_WIDTH
+from utils.actor_utils import get_actor
+from utils.actor_constants import *
 
 
 class GameEngine(object):
@@ -24,18 +26,19 @@ class GameEngine(object):
             camera_height=CAMERA_HEIGHT
         )
 
-        self.world = World(width=WORLD_WIDTH, height=WORLD_HEIGHT)
+        self.world = World()
         
         self.player = Player(
             x=SCREEN_WIDTH / 2,
             y=SCREEN_HEIGHT / 2,
-            world=self.world
+            world=self.world,
+            attributes=get_actor(PLAYER)
         )
 
         self.inp_proc = InputProcessor()
 
         self.factory = ActorFactory(world=self.world)
-        self.factory.make_jackals(num=100)
+        # self.factory.make_jackals(num=1)
 
     def init(self):
         libtcod.console_init_root(

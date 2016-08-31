@@ -1,6 +1,8 @@
 """ Create actors here """
 import random
-from jackal import Jackal
+from collections import defaultdict
+from progue.utils.actor_utils import get_actor
+from progue.utils.actor_constants import *
 
 class ActorFactory(object):
     def __init__(self, world):
@@ -17,7 +19,8 @@ class ActorFactory(object):
                 y = random.randint(0, self.world.height)
                 spawned = self.spawnable_tile(x, y, created_list)
 
-            self.actors.append(Jackal(x=x, y=y, world=self.world))
+            attr = get_actor(ACTOR_JACKAL)
+            self.actors.append(attr[CLASS](x=x, y=y, world=self.world, attributes=attr))
             created_list.append((x, y))
 
     def spawnable_tile(self, x, y, created_list):
