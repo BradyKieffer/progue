@@ -8,6 +8,7 @@ from progue.actors.player import Player
 # Every actor attribute will be in this dict
 ACTOR_ATTRIBUTES = {
     PLAYER: {
+        NAME: PLAYER,
         CLASS:      Player,
         AI:         None,
         GLYPH:      '@',
@@ -19,6 +20,7 @@ ACTOR_ATTRIBUTES = {
         }
     },
     ACTOR_JACKAL: {
+        NAME: ACTOR_JACKAL,
         CLASS:      Jackal,
         AI:         JackalAI,
         GLYPH:      'j',

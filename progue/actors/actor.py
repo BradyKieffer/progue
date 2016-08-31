@@ -4,17 +4,17 @@ import copy
 from collections import defaultdict
 from progue.lib import libtcodpy as libtcod
 from progue.utils.actor_constants import *
-
+from progue.debug.logger import log_message
 
 class Actor(object):
 
     def __init__(self, x, y, world, attributes):
 
+        self.name = attributes[NAME]
         self.x = x
         self.y = y
 
         self.world = world
-
         self.glyph = attributes[GLYPH]
         self.fore_color = attributes[FORE_COLOR]
         self.back_color = attributes[BACK_COLOR]
@@ -25,19 +25,24 @@ class Actor(object):
         else:
             self.ai = None
 
+    def __repr__(self):
+        return '<{cls}:{x}>'.format(cls=self.__class__.__name__, x=(self.x, self.y))
+
     def on_update(self):
         if self.ai is not None:
             self.ai.on_update()
 
     def on_render(self, renderer_in):
         (x, y) = renderer_in.to_camera_coords(self.x, self.y)
-
-        libtcod.console_put_char(0, x, y, self.glyph)
-        libtcod.console_set_char_foreground(0, x, y, self.fore_color)
-        libtcod.console_set_char_background(
-            0, x, y, self.back_color, flag=libtcod.BKGND_SET)
+        
+        if x is not None and y is not None:
+            libtcod.console_put_char(0, x, y, self.glyph)
+            libtcod.console_set_char_foreground(0, x, y, self.fore_color)
+            libtcod.console_set_char_background(
+                0, x, y, self.back_color, flag=libtcod.BKGND_SET)
 
     def move_to(self, mx, my):
+
         new_x = self.x + mx
         new_y = self.y + my
 
@@ -49,7 +54,6 @@ class Actor(object):
 
         if not self.world.actor_at(x=new_x, y=new_y):
             tile = self.world.tile_at(x=new_x, y=new_y)
-
             if tile is not None and tile.passable:
                 self.x = new_x
                 self.y = new_y

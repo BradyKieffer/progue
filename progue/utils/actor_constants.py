@@ -2,6 +2,7 @@
 # Helpers to keep keys constant
 #################################################################################
 
+NAME = 'Name'
 CLASS = 'Class'
 AI = 'AI'
 GLYPH = 'Glyph'

@@ -1,7 +1,9 @@
 """ Implement helpful data structures """
 
+
 class Stack(object):
     """ No need to expose all of the operations of a list """
+
     def __init__(self):
         self.__storage = []
 

@@ -1,14 +1,19 @@
+import random
+import sys 
 from noise import snoise2
 from chunk import Chunk
-import random 
+from progue.debug.logger import log_call, log_endl, log_message
 DEFAULT_LACUNARITY = 2.0
 DEFAULT_GAIN = 0.65
 DEFAULT_OCTAVES = 7
 
 
-def generate_world(world, width, height, chunk_width, chunk_height):
-    res = [[Chunk(x=i, y=j, width=chunk_width, height=chunk_height) for i in xrange(width)] for j in xrange(height)]
+@log_call
+def generate_world(world, width, height, chunk_width, chunk_height, num_chunks_x, num_chunks_y):
+    res = [[Chunk(x=i, y=j, width=chunk_width, height=chunk_height, debug=True) for i in xrange(num_chunks_x)] for j in xrange(num_chunks_y)]
 
+    log_message(res[0][0].name)
+    base = random.randint(-chunk_width, chunk_width)
     for j in xrange(height):
         for i in xrange(width):
             (x, y) = world.to_chunk_coords(x=i, y=j)
@@ -17,9 +22,11 @@ def generate_world(world, width, height, chunk_width, chunk_height):
             pos_y = int(j / chunk_height)
 
             chunk = res[pos_y][pos_x]
-            chunk.raw_map[y][x] = fractal(x=i, y=j, hgrid=width, base=255)
+            chunk.raw_map[y][x] = fractal(x=i, y=j, hgrid=width, base=base)
 
-    return res
+    log_message('Created {x} chunks.'.format(x=num_chunks_x*num_chunks_y))
+    log_message('Chunk size: {x}'.format(x=chunk_width))
+    world.map = res
 
 
 def fractal(x, y, hgrid, base, num_octaves=DEFAULT_OCTAVES, lacunarity=DEFAULT_LACUNARITY, gain=DEFAULT_GAIN):

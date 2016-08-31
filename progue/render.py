@@ -1,11 +1,12 @@
 """ For now put all rendering code in here """
 import math
 from lib import libtcodpy as libtcod
+from progue.utils.render_utils import *
 
 
 class Renderer(object):
 
-    def __init__(self, screen_width, screen_height, world_width, world_height, camera_width, camera_height):
+    def __init__(self, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, world_width=WORLD_WIDTH, world_height=WORLD_HEIGHT, camera_width=CAMERA_WIDTH, camera_height=CAMERA_HEIGHT):
         self.screen_width = screen_width
         self.screen_height = screen_height
 
@@ -18,12 +19,14 @@ class Renderer(object):
         self.camera_x = camera_width / 2
         self.camera_y = camera_height / 2
 
+        self.prev_player_chunk = (None, None)
+
     def render_world(self, world):
         for j in xrange(self.camera_height):
             y = j + self.camera_y
             for i in xrange(self.camera_width):
                 x = i + self.camera_x
-                
+
                 tile = world.tile_at(x, y)
                 self.render_tile(i, j, tile)
 
@@ -51,6 +54,3 @@ class Renderer(object):
             return (None, None)
 
         return (x, y)
-
-    def render_player(self, player):
-        player.on_render(self)

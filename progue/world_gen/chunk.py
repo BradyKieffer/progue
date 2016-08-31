@@ -12,7 +12,7 @@ THRESHOLDS = {
 
 class Chunk(object):
 
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, debug=False):
         self.x = x
         self.y = y
         self.width = width
@@ -20,6 +20,15 @@ class Chunk(object):
         self.raw_map = [[0 for i in xrange(width)] for j in xrange(height)]
         self.map = [[0 for i in xrange(width)] for j in xrange(height)]
 
+        self.actors = []
+        self.debug = debug
+
+    def __repr__(self):
+        return '<{x} {y}>'.format(x=self.__class__.__name__, y=(self.x, self.y))
+
+    @property
+    def name(self):
+        return 'chunk{x}{y}'.format(x=self.x, y=self.y)
 
     def tile_num_map(self, num):
         if num < THRESHOLDS[TILE_WATER]:
@@ -35,9 +44,15 @@ class Chunk(object):
             return TILES[TILE_WALL]
 
     def create_tile_map(self):
-        for j in xrange(len(self.raw_map)):
-            for i in xrange(len(self.raw_map[j])):
-                self.map[j][i] = self.tile_num_map(self.raw_map[j][i])
+        height = len(self.raw_map)
+        width = len(self.raw_map[0])
+        for j in xrange(height):
+            for i in xrange(width):
+                if self.debug:
+                    if i == 0 or i == width - 1 or j == 0 or j == height - 1:
+                        self.map[j][i] = TILES[TILE_DEBUG]
+                    else:
+                        self.map[j][i] = self.tile_num_map(self.raw_map[j][i])
 
     def tile_at(self, x, y):
         if self.in_bounds(x, y):
@@ -48,4 +63,3 @@ class Chunk(object):
         if x >= 0 and y >= 0 and x < self.width and y < self.height:
             return True
         return False
-
