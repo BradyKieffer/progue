@@ -5,7 +5,7 @@ from chunk import Chunk
 from progue.utils.actor_constants import PLAYER
 from progue.utils.render_utils import *
 from progue.debug.logger import log_message
-from progue.utils.file_management import load_chunk
+from progue.utils.file_management import load_chunk, save_chunk
 
 
 class World(object):
@@ -39,7 +39,6 @@ class World(object):
             num_chunks_y=self.num_chunks_y
         )
 
-        self.prev_player_chunk = (None, None)
 
         for chunks in self.map:
             for chunk in chunks:
@@ -58,14 +57,20 @@ class World(object):
     def get_actor_chunk(self, actor):
         return self.get_chunk_from_pos(actor.x, actor.y)
 
-    def get_chunk_from_pos(self, x, y):
+    def get_chunk_num(self, x, y):
+        """ get a chunk number (x, y) from given coordinates """
         pos_x = int(math.floor(x / self.chunk_width))
         pos_y = int(math.floor(y / self.chunk_height))
+        return (pos_x, pos_y)
 
-        try:
-            return self.map[pos_y][pos_x]
-        except IndexError:
-            return load_chunk(save_dir=self.chunk_dir, world_name=self.name, x=pos_x, y=pos_y)
+    def get_chunk_from_num(self, chunk_num):
+        x = chunk_num[0]
+        y = chunk_num[1]
+        return self.__load_chunk(x, y)
+
+    def get_chunk_from_pos(self, x, y):
+        (pos_x, pos_y) = self.get_chunk_num(x, y)
+        return self.__load_chunk(pos_x, pos_y)
 
     def get_player(self):
         for actor in self.actors:
@@ -75,10 +80,58 @@ class World(object):
     def get_player_chunk(self):
         return self.get_actor_chunk(self.get_player())
 
+    def get_render_map(self):
+        player_chunk = self.get_player_chunk()
+
+        load_dist = self.chunk_load_dist
+        x_start = max(0, player_chunk.x - load_dist)
+        x_end = min(self.num_chunks_x, player_chunk.x + load_dist)
+        y_start = max(0, player_chunk.y - load_dist)
+        y_end = min(self.num_chunks_y, player_chunk.y + load_dist)
+
+        log_message((x_start, x_end))
+        log_message((y_start, y_end))
+        return [
+            [
+                load_chunk(
+                    save_dir=self.chunk_dir,
+                    world_name=self.name,
+                    x=i,
+                    y=j
+                )
+                for i in xrange(x_start, x_end)
+            ] for j in xrange(y_start, y_end)
+        ]
+
     def in_bounds(self, x, y):
         if x >= 0 and y >= 0 and x < self.width and y < self.height:
             return True
         return False
+
+    def on_update(self):
+        if self.update_render_map():
+            log_message('Updating render map')
+            for actor in self.actors:
+                if actor.update_chunk():
+                    old_chunk = self.get_chunk_from_num(actor.prev_chunk_num)
+                    new_chunk = self.get_chunk_from_num(actor.curr_chunk_num)
+
+                    log_message('World actors:        {}'.format(self.actors))
+                    log_message('Old chunk to remove: {}'.format(actor.prev_chunk_num))
+                    log_message('New chunk to add:    {}'.format(actor.curr_chunk_num))
+                    log_message('')
+                    
+                    old_chunk.remove_actor(actor)
+                    new_chunk.actors.append(actor)
+                    log_message('Old chunk actors:    {}'.format(old_chunk.actors))
+                    log_message('New chunk actors:    {}'.format(new_chunk.actors))
+
+                    save_chunk(chunk=old_chunk, world_name=self.name, save_dir=self.chunk_dir)
+                    save_chunk(chunk=new_chunk, world_name=self.name, save_dir=self.chunk_dir)
+                    actor.prev_chunk_num = actor.curr_chunk_num
+
+            self.map = self.get_render_map()
+
 
     def spawnable_tile(self, x, y):
         tile = self.tile_at(x=x, y=y)
@@ -97,57 +150,30 @@ class World(object):
 
         return (chunk_x, chunk_y)
 
-    def on_update(self):
-        if self.update_render_map():
-            self.purge_chunk_actors()
-            self.store_actors(self.actors)
-            self.load_actors()
+    def store_actors(self, actors):
+        for actor in actors:
+            chunk = self.get_actor_chunk(actor)
+            if actor in chunk.actors:
+                chunk.remove_actor(actor)
 
-            # Needs to be last 
-            self.map = self.get_render_map()
-
-    def get_render_map(self):
-        player_chunk = self.get_player_chunk()
-
-        load_dist = self.chunk_load_dist
-        x_start = max(0, player_chunk.x - load_dist)
-        x_end = min(self.num_chunks_x, player_chunk.x + load_dist)
-        y_start = max(0, player_chunk.y - load_dist)
-        y_end = min(self.num_chunks_y, player_chunk.y + load_dist)
-
-        return [
-            [
-                load_chunk(
-                    save_dir=self.chunk_dir,
-                    world_name=self.name,
-                    x=i,
-                    y=j
-                )
-                for i in xrange(x_start, x_end)
-            ] for j in xrange(y_start, y_end)
-        ]
-
-    def update_render_map(self):
-        player_chunk = self.get_player_chunk()
-        coords = (player_chunk.x, player_chunk.y)
-        
-        if self.prev_player_chunk != coords:
-            self.prev_player_chunk = coords
-            return True
-        return False
-
-    def purge_chunk_actors(self):
-        for chunks in self.map:
-            for chunk in chunks:
-                chunk.actors = []
+            chunk.actors.append(actor)
+            save_chunk(chunk=chunk, world_name=self.name, save_dir=self.chunk_dir)
 
     def load_actors(self):
+        """ Get actors from currently loaded chunks """
         self.actors = []
         for chunks in self.map:
             for chunk in chunks:
                 self.actors += chunk.actors
 
-    def store_actors(self, actors):
-        for actor in actors:
-            chunk = self.get_chunk_from_pos(actor.x, actor.y)
-            chunk.actors.append(actor)
+    def __load_chunk(self, x, y):
+        try:
+            return self.map[y][x]
+        except IndexError:
+            # log_message('Loading chunk at: {}'.format((x, y)))
+            return load_chunk(save_dir=self.chunk_dir, world_name=self.name, x=x, y=y)
+
+    def update_render_map(self):
+        if self.get_player().update_chunk():
+            return True
+        return False

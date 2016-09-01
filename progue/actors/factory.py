@@ -14,10 +14,12 @@ class ActorFactory(object):
         self.prep_actor(num=100, label=ACTOR_JACKAL)
 
     def prep_player(self):
-        self.prep_actor(num=1, label=PLAYER)
+        # self.prep_actor(num=1, label=PLAYER)
+        self.to_make.append(self.ActorToMake(x=0, y=0, label=PLAYER))
+
 
     def prep_actors(self):
-        self.prep_jackals()
+        # self.prep_jackals()
         self.prep_player()
 
 

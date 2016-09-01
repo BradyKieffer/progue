@@ -27,7 +27,7 @@ def create_if_not_exists(path):
 def load_game(world_name, save_dir):
     saves_path = os.path.join(save_dir, SAVES + world_name)
     return {
-        'World':  load(path=saves_path, file_name=WORLD_FILE_NAME ),
+        'World':  load(path=saves_path, file_name=WORLD_FILE_NAME),
         'Actors': load(path=saves_path, file_name=ACTORS_FILE_NAME)
     }
 
@@ -38,6 +38,7 @@ def load_chunk(save_dir, world_name, x, y):
 
     # log_message('Loaded {}'.format(chunk))
     return chunk
+
 
 def load(path, file_name):
     """ Will return None if the file could not be found """
@@ -65,6 +66,7 @@ def save_game(game_engine, save_dir):
          path=saves_path, file_name=ACTORS_FILE_NAME)
     save_chunks(world=game_engine.world, save_dir=save_dir)
 
+
 def save_chunks(world, save_dir):
     base_path = os.path.join(save_dir, SAVES + world.name, CHUNKS)
     create_if_not_exists(base_path)
@@ -72,7 +74,13 @@ def save_chunks(world, save_dir):
         for chunk in chunks:
             save(obj=chunk, path=base_path, file_name=chunk.name + '.p')
 
+
+def save_chunk(chunk, world_name, save_dir):
+    base_path = os.path.join(save_dir, SAVES + world_name, CHUNKS)
+    create_if_not_exists(base_path)
+    save(obj=chunk, path=base_path, file_name=chunk.name + '.p')
+
+
 def save(obj, path, file_name):
     save_dir = os.path.join(path, file_name)
     dill.dump(obj, open(save_dir, 'wb'))
-

@@ -29,8 +29,6 @@ class GameEngine(object):
         else:
             self.get_loaded_game(loaded_attributes)
 
-        self.world.load_actors()
-
         self.player = self.world.get_player()
         self.inp_proc = InputProcessor()
 
@@ -41,6 +39,9 @@ class GameEngine(object):
             self.title,
             False
         )
+        self.world.load_actors()        
+        self.player = self.world.get_player()
+        self.print_game_info()
 
 
     def generate_new_game(self):
@@ -52,7 +53,9 @@ class GameEngine(object):
     def get_loaded_game(self, loaded_attributes):
         self.world = loaded_attributes['World']
         self.world.actors = loaded_attributes['Actors']
+        self.world.store_actors(self.world.actors)
         self.factory = ActorFactory(world=self.world)
+
 
     def update(self):
         """ Main game loop will go here """
@@ -60,7 +63,6 @@ class GameEngine(object):
 
         # Checks loaded chunks etc 
         self.world.on_update()
-        self.player = self.world.get_player()
 
         # 1. Render
         self.render()
@@ -99,6 +101,5 @@ class GameEngine(object):
         log_message('\t Actors:     {x}'.format(x=len(self.world.actors)))
         log_endl()
         log_message('Player Data:')
-        log_message('\t Position:   {x}'.format(
-            x=(self.player.x, self.player.y)))
-        log_message('\t Attributes: {x}'.format(x=self.player.attributes))
+        log_message('\t Position:   {x}'.format(x=(self.world.get_player().x, self.world.get_player().y)))
+        log_message('\t Attributes: {x}'.format(x=self.world.get_player().attributes))

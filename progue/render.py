@@ -2,6 +2,7 @@
 import math
 from lib import libtcodpy as libtcod
 from progue.utils.render_utils import *
+from progue.debug.logger import log_message
 
 
 class Renderer(object):
@@ -19,9 +20,23 @@ class Renderer(object):
         self.camera_x = camera_width / 2
         self.camera_y = camera_height / 2
 
-        self.prev_player_chunk = (None, None)
-
     def render_world(self, world):
+        for chunks in world.map:
+            for chunk in chunks:
+                y = chunk.y * chunk.height
+                x = chunk.x * chunk.width
+                self.render_chunk(x, y, chunk)
+
+    def render_chunk(self, x, y, chunk):
+        for j in xrange(chunk.height):
+            for i in xrange(chunk.width):
+                (pos_x, pos_y) = self.to_camera_coords(target_x=x + i, target_y=y + j) 
+                if (pos_x, pos_y) is not None:
+                    tile = chunk.tile_at(i, j)
+                    self.render_tile(pos_x, pos_y, tile)
+
+
+    def __render_world(self, world):
         for j in xrange(self.camera_height):
             y = j + self.camera_y
             for i in xrange(self.camera_width):

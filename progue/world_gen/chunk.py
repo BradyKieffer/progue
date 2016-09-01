@@ -63,3 +63,6 @@ class Chunk(object):
         if x >= 0 and y >= 0 and x < self.width and y < self.height:
             return True
         return False
+
+    def remove_actor(self, actor):
+        self.actors.remove(actor)
