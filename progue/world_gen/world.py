@@ -4,7 +4,7 @@ import math
 from chunk import Chunk
 from progue.utils.actor_constants import PLAYER
 from progue.utils.render_utils import *
-from progue.debug.logger import log_message
+from progue.debug.logger import log_message, log_endl
 from progue.utils.file_management import load_chunk, save_chunk
 
 
@@ -39,7 +39,6 @@ class World(object):
             num_chunks_y=self.num_chunks_y
         )
 
-
         for chunks in self.map:
             for chunk in chunks:
                 chunk.create_tile_map()
@@ -55,6 +54,7 @@ class World(object):
         return None
 
     def get_actor_chunk(self, actor):
+
         return self.get_chunk_from_pos(actor.x, actor.y)
 
     def get_chunk_num(self, x, y):
@@ -69,6 +69,7 @@ class World(object):
         return self.__load_chunk(x, y)
 
     def get_chunk_from_pos(self, x, y):
+
         (pos_x, pos_y) = self.get_chunk_num(x, y)
         return self.__load_chunk(pos_x, pos_y)
 
@@ -89,8 +90,17 @@ class World(object):
         y_start = max(0, player_chunk.y - load_dist)
         y_end = min(self.num_chunks_y, player_chunk.y + load_dist)
 
-        log_message((x_start, x_end))
-        log_message((y_start, y_end))
+        self.deload_chunks()
+
+        return self.new_render_map(x_start=x_start, x_end=x_end, y_start=y_start, y_end=y_end)
+
+    def deload_chunks(self):
+        for chunks in self.map:
+            for chunk in chunks:
+                save_chunk(chunk=chunk, world_name=self.name,
+                           save_dir=self.chunk_dir)
+
+    def new_render_map(self, x_start, x_end, y_start, y_end):
         return [
             [
                 load_chunk(
@@ -109,29 +119,52 @@ class World(object):
         return False
 
     def on_update(self):
+            # log_endl()
+            # log_message('Updating render map')
         if self.update_render_map():
-            log_message('Updating render map')
-            for actor in self.actors:
-                if actor.update_chunk():
-                    old_chunk = self.get_chunk_from_num(actor.prev_chunk_num)
-                    new_chunk = self.get_chunk_from_num(actor.curr_chunk_num)
-
-                    log_message('World actors:        {}'.format(self.actors))
-                    log_message('Old chunk to remove: {}'.format(actor.prev_chunk_num))
-                    log_message('New chunk to add:    {}'.format(actor.curr_chunk_num))
-                    log_message('')
-                    
-                    old_chunk.remove_actor(actor)
-                    new_chunk.actors.append(actor)
-                    log_message('Old chunk actors:    {}'.format(old_chunk.actors))
-                    log_message('New chunk actors:    {}'.format(new_chunk.actors))
-
-                    save_chunk(chunk=old_chunk, world_name=self.name, save_dir=self.chunk_dir)
-                    save_chunk(chunk=new_chunk, world_name=self.name, save_dir=self.chunk_dir)
-                    actor.prev_chunk_num = actor.curr_chunk_num
-
+            # self.fuck_this_shit()
+            # self.player = self.get_player()
             self.map = self.get_render_map()
 
+    def fuck_this_shit(self):
+        for actor in self.actors:
+            if actor.update_chunk():
+                old_chunk = self.get_chunk_from_num(actor.prev_chunk_num)
+                new_chunk = self.get_chunk_from_num(actor.curr_chunk_num)
+
+                # log_message('World actors:        {}'.format(self.actors))
+                # log_message('Old chunk to remove: {}'.format(actor.prev_chunk_num))
+                # log_message('New chunk to add:    {}'.format(actor.curr_chunk_num))
+                # log_endl()
+                # log_message('Old chunk actors:    {}'.format(old_chunk.actors))
+                # log_message('New chunk actors:    {}'.format(new_chunk.actors))
+                # log_endl()
+
+                # try:
+                old_chunk.remove_actor(actor)
+                # except Exception:
+                    # log_message('Current Actor: {}'.format(actor))
+                    # log_message('Old Chunk: {}'.format(old_chunk))
+                    # log_message('Trying to remove from: {}'.format(old_chunk.actors))
+                    # raise ValueError()
+
+                new_chunk.actors.append(actor)
+                # log_message('After update')
+                # log_message('Old chunk actors:    {}'.format(old_chunk.actors))
+                # log_message('New chunk actors:    {}'.format(new_chunk.actors))
+                # log_endl()
+                save_chunk(chunk=old_chunk, world_name=self.name,
+                           save_dir=self.chunk_dir)
+                save_chunk(chunk=new_chunk, world_name=self.name,
+                           save_dir=self.chunk_dir)
+                actor.prev_chunk_num = actor.curr_chunk_num
+
+    def update_chunk_actors(self):
+
+        for actor in self.actors:
+            chunk = self.get_actor_chunk(actor)
+            if not (actor in chunk.actors):
+                chunk.actors.append(actor)
 
     def spawnable_tile(self, x, y):
         tile = self.tile_at(x=x, y=y)
@@ -157,7 +190,8 @@ class World(object):
                 chunk.remove_actor(actor)
 
             chunk.actors.append(actor)
-            save_chunk(chunk=chunk, world_name=self.name, save_dir=self.chunk_dir)
+            save_chunk(chunk=chunk, world_name=self.name,
+                       save_dir=self.chunk_dir)
 
     def load_actors(self):
         """ Get actors from currently loaded chunks """
@@ -168,9 +202,11 @@ class World(object):
 
     def __load_chunk(self, x, y):
         try:
-            return self.map[y][x]
+            (offset_x, offset_y) = (self.map[0][0].x, self.map[0][0].y)
+            return self.map[y - offset_y][x - offset_x]
         except IndexError:
-            # log_message('Loading chunk at: {}'.format((x, y)))
+
+            log_message('Loading chunk at: {}'.format((x, y)))
             return load_chunk(save_dir=self.chunk_dir, world_name=self.name, x=x, y=y)
 
     def update_render_map(self):

@@ -11,7 +11,7 @@ class ActorFactory(object):
         self.prep_actors()
 
     def prep_jackals(self):
-        self.prep_actor(num=100, label=ACTOR_JACKAL)
+        self.prep_actor(num=10, label=ACTOR_JACKAL)
 
     def prep_player(self):
         # self.prep_actor(num=1, label=PLAYER)
@@ -19,7 +19,7 @@ class ActorFactory(object):
 
 
     def prep_actors(self):
-        # self.prep_jackals()
+        self.prep_jackals()
         self.prep_player()
 
 

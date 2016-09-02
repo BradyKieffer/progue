@@ -60,6 +60,7 @@ class GameEngine(object):
     def update(self):
         """ Main game loop will go here """
         # Debug message
+        # log_message((self.player.x, self.player.y))
 
         # Checks loaded chunks etc 
         self.world.on_update()
