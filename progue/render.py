@@ -3,7 +3,7 @@ import math
 from lib import libtcodpy as libtcod
 from progue.utils.render_utils import *
 from progue.debug.logger import log_message
-
+from progue.world_gen.chunk import Chunk
 
 class Renderer(object):
 
@@ -23,9 +23,10 @@ class Renderer(object):
     def render_world(self, world):
         for chunks in world.tiles:
             for chunk in chunks:
-                y = chunk.y * chunk.height
-                x = chunk.x * chunk.width
-                self.render_chunk(x, y, chunk)
+                if isinstance(chunk, Chunk):
+                    y = chunk.y * chunk.height
+                    x = chunk.x * chunk.width
+                    self.render_chunk(x, y, chunk)
 
     def render_chunk(self, x, y, chunk):
         for j in xrange(chunk.height):

@@ -2,7 +2,8 @@
 import world_gen
 import math
 from progue.world_gen.world_gen import WorldBuilder
-from progue.world_gen.chunk import Chunk, ChunkManager
+from progue.world_gen.chunk import Chunk
+from progue.world_gen.chunk_manager import ChunkManager
 from progue.utils.actor_constants import PLAYER
 from progue.utils.render_utils import *
 from progue.debug.logger import log_message, log_endl
@@ -42,12 +43,19 @@ class World(object):
 
     def on_new_game(self):
         self.tiles = self.chunk_manager.to_tiles(self.world_builder.generate_world())
-        
+        self.chunk_manager.save_chunk_map(self.tiles)
+
+
     def on_update(self):
             # log_endl()
-            # log_message('Updating render map')
-        # if self.update_render_map():
-        self.tiles = self.chunk_manager.build_chunk_map(player=self.get_player())
+        log_message(self.update_tiles())
+        if self.update_tiles():
+            self.chunk_manager.update_actors(self.actors)
+            self.tiles = self.chunk_manager.build_chunk_map(player=self.get_player())
+            self.chunk_manager.save_chunk_map(self.tiles)
+            player = self.get_player()
+            player.prev_chunk_num = player.curr_chunk_num
+            
 
     def actor_at(self, x, y):
         for actor in self.actors:
@@ -98,7 +106,7 @@ class World(object):
     def tile_at(self, x, y):
         (chunk_x, chunk_y) = self.chunk_manager.to_chunk_coords(x, y)
         (chunk_num_x, chunk_num_y) = self.chunk_manager.get_chunk_num(x, y)
-        
+
         try:
             return self.tiles[chunk_num_y][chunk_num_x].tiles[chunk_y][chunk_x]
 
@@ -106,7 +114,7 @@ class World(object):
             chunk = self.chunk_manager.get_chunk_from_pos(x=x, y=y)
             return chunk.tiles[chunk_y][chunk_x]
 
-    def update_render_map(self):
+    def update_tiles(self):
         if self.get_player().update_chunk():
             return True
         return False

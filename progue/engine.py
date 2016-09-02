@@ -38,7 +38,9 @@ class GameEngine(object):
             SCREEN_HEIGHT,
             self.title,
             False
-        )       
+        )
+        self.world.tiles = self.world.chunk_manager.build_chunk_map(self.world.get_player())
+        self.world.actors = self.world.chunk_manager.load_actors()
         self.player = self.world.get_player()
         self.print_game_info()
 
@@ -50,7 +52,6 @@ class GameEngine(object):
         self.factory = ActorFactory(world=self.world)
         self.factory.make_actors()
         self.world.actors = self.world.get_loaded_actors()
-        
         save_chunks(world=self.world, save_dir=self.save_dir)
 
     def get_loaded_game(self, loaded_attributes):
@@ -59,13 +60,12 @@ class GameEngine(object):
         self.world.store_actors(self.world.actors)
         self.factory = ActorFactory(world=self.world)
 
-
     def update(self):
         """ Main game loop will go here """
         # Debug message
         # log_message((self.player.x, self.player.y))
 
-        # Checks loaded chunks etc 
+        # Checks loaded chunks etc
         self.world.on_update()
 
         # 1. Render
@@ -75,7 +75,8 @@ class GameEngine(object):
         actions = self.inp_proc.handle_keys()
 
         if actions['MOVE']['mx'] != 0 or actions['MOVE']['my'] != 0:
-            self.player.move_to(mx=actions['MOVE']['mx'], my=actions['MOVE']['my'])
+            self.player.move_to(mx=actions['MOVE'][
+                                'mx'], my=actions['MOVE']['my'])
 
         # 3. Logic
         if actions['UPDATE_LOGIC'] == True:
@@ -101,9 +102,12 @@ class GameEngine(object):
             x=(self.world.width, self.world.height)))
         log_message('\t Chunks:     {x}'.format(
             x=self.world.chunk_manager.num_chunks_x * self.world.chunk_manager.num_chunks_y))
-        log_message('\t Chunk Size: {x}'.format(x=self.world.chunk_manager.chunk_width))
+        log_message('\t Chunk Size: {x}'.format(
+            x=self.world.chunk_manager.chunk_width))
         log_message('\t Actors:     {x}'.format(x=len(self.world.actors)))
         log_endl()
         log_message('Player Data:')
-        log_message('\t Position:   {x}'.format(x=(self.world.get_player().x, self.world.get_player().y)))
-        log_message('\t Attributes: {x}'.format(x=self.world.get_player().attributes))
+        log_message('\t Position:   {x}'.format(
+            x=(self.world.get_player().x, self.world.get_player().y)))
+        log_message('\t Attributes: {x}'.format(
+            x=self.world.get_player().attributes))
