@@ -7,7 +7,7 @@ from progue.world_gen.chunk import Chunk
 
 class Renderer(object):
 
-    def __init__(self, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, world_width=WORLD_WIDTH, world_height=WORLD_HEIGHT, camera_width=CAMERA_WIDTH, camera_height=CAMERA_HEIGHT):
+    def __init__(self, screen_width=SCREEN_WIDTH, screen_height=SCREEN_HEIGHT, world_width=CHUNK_WIDTH, world_height=CHUNK_HEIGHT, camera_width=CAMERA_WIDTH, camera_height=CAMERA_HEIGHT):
         self.screen_width = screen_width
         self.screen_height = screen_height
 
@@ -21,21 +21,14 @@ class Renderer(object):
         self.camera_y = camera_height / 2
 
     def render_world(self, world):
-        for chunks in world.tiles:
-            for chunk in chunks:
-                if isinstance(chunk, Chunk):
-                    y = chunk.y * chunk.height
-                    x = chunk.x * chunk.width
-                    self.render_chunk(x, y, chunk)
-
-    def render_chunk(self, x, y, chunk):
+        chunk = world.chunk
         for j in xrange(chunk.height):
             for i in xrange(chunk.width):
-                (pos_x, pos_y) = self.to_camera_coords(target_x=x + i, target_y=y + j) 
+                (pos_x, pos_y) = self.to_camera_coords(target_x=i, target_y=j) 
                 if (pos_x, pos_y) is not None:
                     tile = chunk.tile_at(i, j)
                     self.render_tile(pos_x, pos_y, tile)
-
+        
 
     def __render_world(self, world):
         for j in xrange(self.camera_height):

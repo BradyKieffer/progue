@@ -8,7 +8,7 @@ from progue.debug.logger import log_call, log_endl, log_message
 DEFAULT_LACUNARITY = 2.0
 DEFAULT_GAIN = 0.65
 DEFAULT_OCTAVES = 7
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 class WorldBuilder(object):
@@ -37,10 +37,15 @@ class WorldBuilder(object):
 
     def generate_world(self):
         tiles = self.__build_blank_map()
+        for j in xrange(self.num_chunks_y):
+            for i in xrange(self.num_chunks_y):
+                chunk = tiles[j][i]
+                self.__generate_noise(chunk)
+        """
         for chunks in tiles:
             for chunk in chunks:
-                self.__generate_noise(chunk)
-
+                log_message(chunk)
+        """
         log_message('Created {x} chunks.'.format(
             x=self.num_chunks_x * self.num_chunks_y))
         log_message('Chunk size: {x}'.format(x=self.chunk_width))
@@ -53,7 +58,7 @@ class WorldBuilder(object):
         for j in xrange(chunk.height):
             for i in xrange(chunk.width):
                 chunk.raw_map[j][i] = self.__fractal(
-                    x=i, y=j, hgrid=self.world_width, base=base)
+                    x=i, y=j, hgrid=self.chunk_width, base=base)
 
     def __fractal(self, x, y, hgrid, base, num_octaves=DEFAULT_OCTAVES, lacunarity=DEFAULT_LACUNARITY, gain=DEFAULT_GAIN):
         """ A more refined approach but has a much slower run time """

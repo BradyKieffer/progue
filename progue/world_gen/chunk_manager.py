@@ -6,7 +6,7 @@ from progue.debug.logger import log_message, log_endl
 class ChunkManager(object):
     """ Offload the management of chunks from the world to here """
 
-    def __init__(self, save_dir, world_name, chunk_width, chunk_height, num_chunks_x, num_chunks_y, load_distance):
+    def __init__(self, save_dir, world_name, chunk_width, chunk_height, num_chunks_x, num_chunks_y):
         self.save_dir = save_dir
         self.world_name = world_name
 
@@ -16,11 +16,9 @@ class ChunkManager(object):
         self.chunk_width = chunk_width
         self.chunk_height = chunk_height
 
-        self.load_distance = load_distance
-
         self.offset = (None, None)
 
-        self.loaded_chunks = self.__blank_map()
+        self.loaded_chunk = None
 
     def to_tiles(self, raw_map):
         """ Take a raw map and convert it to a tile map of chunks """
@@ -30,31 +28,16 @@ class ChunkManager(object):
 
         return raw_map
 
-    def __blank_map(self):
-        size = 3 * self.load_distance +  2 * (self.load_distance - 1)
-        return [[None for i in xrange(size)] for j in xrange(size)]
-
     def build_chunk_map(self, player):
         """ When called this will build a chunk map around the player """
-        self.loaded_chunks = self.__blank_map()
         (offset_x, offset_y) = self.calc_chunk_offset(player)
 
-        (player_chunk_num_x, player_chunk_num_y) = self.get_actor_chunk_num(player)
+        (x, y) = self.get_actor_chunk_num(player)
+        self.loaded_chunk = self.__load_chunk(x=x, y=y)
         
-        (x_start, x_end, y_start, y_end) = self.compute_chunk_bounds(player_chunk_num_x, player_chunk_num_y)
+        log_message(self.loaded_chunk)
 
-        log_message((player_chunk_num_x, player_chunk_num_y))
-        log_message((x_start, x_end, y_start, y_end))
-
-        for j in xrange(y_start, y_end):
-            y = j - offset_y 
-            for i in xrange(x_start, x_end):
-                x = i - offset_x
-                if (i, j) != self.loaded_chunks[y][x]:
-                    self.loaded_chunks[y][x] = load_chunk(save_dir=self.save_dir, world_name=self.world_name, x=i, y=j)
-
-        log_message(self.loaded_chunks)
-        return self.loaded_chunks
+        return self.loaded_chunk
 
     def compute_chunk_bounds(self, x, y):
         x_start = max(0, x - self.load_distance)
@@ -67,8 +50,7 @@ class ChunkManager(object):
     def save_chunk_map(self, chunk_map):
         for chunks in chunk_map:
             for chunk in chunks:
-                if isinstance(chunk, Chunk):
-                    self.save_chunk(chunk=chunk)
+                self.save_chunk(chunk=chunk)
 
     def get_actor_chunk_num(self, actor):
         return self.get_chunk_num(x=actor.x, y=actor.y)
@@ -97,8 +79,8 @@ class ChunkManager(object):
 
     def calc_chunk_offset(self, player):
         (x, y) = self.get_actor_chunk_num(player)
-        offset_x = max(0, x - self.load_distance)
-        offset_y = max(0, y - self.load_distance)
+        offset_x = max(0, x - 1)
+        offset_y = max(0, y - 1)
         return (offset_x, offset_y)
 
     def update_actors(self, actors):
@@ -108,15 +90,10 @@ class ChunkManager(object):
                 prev_chunk.remove_actor(actor)
                 self.assign_actor_to_chunk(actor)
 
-    def load_actors(self):
+    def load_actors(self, x, y):
         """ Get actors from currently loaded chunks """
-        actors = []
-        for chunks in self.loaded_chunks:
-            for chunk in chunks:
-                if isinstance(chunk, Chunk):
-                    actors.extend(chunk.actors)
+        return self.__load_chunk(x=x, y=y).actors
 
-        return actors
 
     def save_actors(self, actors):
         """ Saves actors to their chunks """

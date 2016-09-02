@@ -29,7 +29,6 @@ class GameEngine(object):
         else:
             self.get_loaded_game(loaded_attributes)
 
-        self.player = self.world.get_player()
         self.inp_proc = InputProcessor()
 
     def init(self):
@@ -39,20 +38,21 @@ class GameEngine(object):
             self.title,
             False
         )
-        self.world.tiles = self.world.chunk_manager.build_chunk_map(self.world.get_player())
-        self.world.actors = self.world.chunk_manager.load_actors()
-        self.player = self.world.get_player()
+        log_message(self.world.actors)
+        self.world.chunk = self.world.chunk_manager.build_chunk_map(self.world.player)
+        log_message(self.world.chunk)
+        self.world.actors = self.world.chunk.actors
         self.print_game_info()
 
 
     def generate_new_game(self):
         self.world = World(chunk_dir=self.save_dir)
         self.world.on_new_game()
-
+        
         self.factory = ActorFactory(world=self.world)
         self.factory.make_actors()
-        self.world.actors = self.world.get_loaded_actors()
-        save_chunks(world=self.world, save_dir=self.save_dir)
+        self.world.chunk_manager.save_chunk_map(self.world.chunk)
+        
 
     def get_loaded_game(self, loaded_attributes):
         self.world = loaded_attributes['World']
@@ -63,20 +63,21 @@ class GameEngine(object):
     def update(self):
         """ Main game loop will go here """
         # Debug message
-        # log_message((self.player.x, self.player.y))
 
         # Checks loaded chunks etc
         self.world.on_update()
-        # log_message(self.world.tiles)
+
+        # log_message(self.world.chunk.tiles)
 
         # 1. Render
         self.render()
+        # log_message('Player coords {}'.format((self.player.x, self.player.y)))
 
         # 2. Player Input
         actions = self.inp_proc.handle_keys()
 
         if actions['MOVE']['mx'] != 0 or actions['MOVE']['my'] != 0:
-            self.player.move_to(mx=actions['MOVE'][
+            self.world.get_player().move_to(mx=actions['MOVE'][
                                 'mx'], my=actions['MOVE']['my'])
 
         # 3. Logic
@@ -87,7 +88,7 @@ class GameEngine(object):
         return actions
 
     def render(self):
-        self.renderer.move_camera(self.player.x, self.player.y)
+        self.renderer.move_camera(self.world.get_player().draw_x, self.world.get_player().draw_y)
         self.renderer.render_world(self.world)
         self.render_actors(self.world.actors)
         libtcod.console_flush()
@@ -109,6 +110,6 @@ class GameEngine(object):
         log_endl()
         log_message('Player Data:')
         log_message('\t Position:   {x}'.format(
-            x=(self.world.get_player().x, self.world.get_player().y)))
+            x=(self.world.player.x, self.world.player.y)))
         log_message('\t Attributes: {x}'.format(
-            x=self.world.get_player().attributes))
+            x=self.world.player.attributes))

@@ -43,6 +43,11 @@ class ActorFactory(object):
 
         self.world.store_actors(actors)
 
+        # Quick hack
+        for actor in actors:
+            if actor.name == PLAYER:
+                self.world.player = actor
+
     class ActorToMake(object):
         def __init__(self, x, y, label):
             self.x = x

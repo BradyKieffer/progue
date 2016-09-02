@@ -15,8 +15,8 @@ class Actor(object):
         self.__id = uuid1(id(self)).bytes
 
         self.name = attributes[NAME]
-        self.x = x
-        self.y = y
+        self.x = self.draw_x = x
+        self.y = self.draw_y = y
 
 
         self.world = world
@@ -56,7 +56,7 @@ class Actor(object):
         self.check_current_pos()
 
     def on_render(self, renderer_in):
-        (x, y) = renderer_in.to_camera_coords(self.x, self.y)
+        (x, y) = renderer_in.to_camera_coords(self.draw_x, self.draw_y)
 
         if x is not None and y is not None:
             libtcod.console_put_char(0, x, y, self.glyph)
@@ -80,6 +80,8 @@ class Actor(object):
             if tile is not None and tile.passable:
                 self.x = new_x
                 self.y = new_y
+                self.update_coords()
+                
                 return True
 
         return False
@@ -93,3 +95,9 @@ class Actor(object):
 
     def update_chunk(self):
         return self.prev_chunk_num != self.curr_chunk_num
+
+    def update_coords(self):        
+        (x, y) = self.world.chunk_manager.to_chunk_coords(self.x, self.y)
+        self.draw_x = x
+        self.draw_y = y
+        

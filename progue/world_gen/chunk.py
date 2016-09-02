@@ -53,8 +53,8 @@ class Chunk(object):
                 if self.debug:
                     if i == 0 or i == width - 1 or j == 0 or j == height - 1:
                         self.tiles[j][i] = TILES[TILE_DEBUG]
-                    else:
-                        self.tiles[j][i] = self.tile_num_map(self.raw_map[j][i])
+                else:
+                    self.tiles[j][i] = self.tile_num_map(self.raw_map[j][i])
 
     def tile_at(self, x, y):
         if self.in_bounds(x, y):
