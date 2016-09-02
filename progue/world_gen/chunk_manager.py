@@ -20,7 +20,7 @@ class ChunkManager(object):
 
         self.offset = (None, None)
 
-        self.loaded_chunks = [[None for i in xrange(self.num_chunks_x)] for j in xrange(self.num_chunks_y)]
+        self.loaded_chunks = self.__blank_map()
 
     def to_tiles(self, raw_map):
         """ Take a raw map and convert it to a tile map of chunks """
@@ -30,30 +30,37 @@ class ChunkManager(object):
 
         return raw_map
 
+    def __blank_map(self):
+        size = 3 * self.load_distance +  2 * (self.load_distance - 1)
+        return [[None for i in xrange(size)] for j in xrange(size)]
+
     def build_chunk_map(self, player):
         """ When called this will build a chunk map around the player """
+        self.loaded_chunks = self.__blank_map()
         (offset_x, offset_y) = self.calc_chunk_offset(player)
 
         (player_chunk_num_x, player_chunk_num_y) = self.get_actor_chunk_num(player)
         
         (x_start, x_end, y_start, y_end) = self.compute_chunk_bounds(player_chunk_num_x, player_chunk_num_y)
 
-        # log_message((player_chunk_num_x, player_chunk_num_y))
-        # log_message((x_start, x_end, y_start, y_end))
+        log_message((player_chunk_num_x, player_chunk_num_y))
+        log_message((x_start, x_end, y_start, y_end))
 
         for j in xrange(y_start, y_end):
             y = j - offset_y 
             for i in xrange(x_start, x_end):
                 x = i - offset_x
-                self.loaded_chunks[y][x] = load_chunk(save_dir=self.save_dir, world_name=self.world_name, x=x, y=y)
+                if (i, j) != self.loaded_chunks[y][x]:
+                    self.loaded_chunks[y][x] = load_chunk(save_dir=self.save_dir, world_name=self.world_name, x=i, y=j)
 
+        log_message(self.loaded_chunks)
         return self.loaded_chunks
 
     def compute_chunk_bounds(self, x, y):
         x_start = max(0, x - self.load_distance)
-        x_end = min(self.num_chunks_x, x + self.load_distance)
+        x_end = min(self.num_chunks_x, x + self.load_distance + 1)
         y_start = max(0, y - self.load_distance)
-        y_end = min(self.num_chunks_y, y + self.load_distance)
+        y_end = min(self.num_chunks_y, y + self.load_distance + 1)
 
         return (x_start, x_end, y_start, y_end)
 

@@ -67,6 +67,7 @@ class GameEngine(object):
 
         # Checks loaded chunks etc
         self.world.on_update()
+        # log_message(self.world.tiles)
 
         # 1. Render
         self.render()

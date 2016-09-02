@@ -16,6 +16,7 @@ class Chunk(object):
     def __init__(self, x, y, width, height, debug=False):
         self.x = x
         self.y = y
+        self.num = (x, y)
         self.width = width
         self.height = height
         self.raw_map = [[0 for i in xrange(width)] for j in xrange(height)]

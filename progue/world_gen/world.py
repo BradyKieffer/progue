@@ -47,15 +47,15 @@ class World(object):
 
 
     def on_update(self):
-            # log_endl()
-        log_message(self.update_tiles())
+        # log_endl()
+        # log_message(self.update_tiles())
         if self.update_tiles():
             self.chunk_manager.update_actors(self.actors)
             self.tiles = self.chunk_manager.build_chunk_map(player=self.get_player())
             self.chunk_manager.save_chunk_map(self.tiles)
             player = self.get_player()
             player.prev_chunk_num = player.curr_chunk_num
-            
+
 
     def actor_at(self, x, y):
         for actor in self.actors:
