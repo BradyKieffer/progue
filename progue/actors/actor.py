@@ -20,7 +20,7 @@ class Actor(object):
 
 
         self.world = world
-        self.curr_chunk_num = self.prev_chunk_num = self.world.get_chunk_num(self.x, self.y)
+        self.curr_chunk_num = self.prev_chunk_num = self.world.chunk_manager.get_chunk_num(self.x, self.y)
 
         self.glyph = attributes[GLYPH]
         self.fore_color = attributes[FORE_COLOR]
@@ -43,7 +43,7 @@ class Actor(object):
 
     def check_current_pos(self):
         """ Keep a record of the actors chunk """
-        curr_chunk_num = self.world.get_chunk_num(self.x, self.y)
+        curr_chunk_num = self.world.chunk_manager.get_chunk_num(self.x, self.y)
         if self.curr_chunk_num != curr_chunk_num:
             self.prev_chunk_num = self.curr_chunk_num
             self.curr_chunk_num = curr_chunk_num

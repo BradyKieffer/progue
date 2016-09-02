@@ -70,7 +70,7 @@ def save_game(game_engine, save_dir):
 def save_chunks(world, save_dir):
     base_path = os.path.join(save_dir, SAVES + world.name, CHUNKS)
     create_if_not_exists(base_path)
-    for chunks in world.map:
+    for chunks in world.tiles:
         for chunk in chunks:
             save(obj=chunk, path=base_path, file_name=chunk.name + '.p')
 

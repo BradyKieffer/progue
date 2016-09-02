@@ -21,7 +21,7 @@ class Renderer(object):
         self.camera_y = camera_height / 2
 
     def render_world(self, world):
-        for chunks in world.map:
+        for chunks in world.tiles:
             for chunk in chunks:
                 y = chunk.y * chunk.height
                 x = chunk.x * chunk.width

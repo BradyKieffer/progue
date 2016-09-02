@@ -1,50 +1,76 @@
 import random
-import sys 
+import sys
 from noise import snoise2
 from chunk import Chunk
+from progue.utils.file_management import load_chunk, save_chunk
 from progue.debug.logger import log_call, log_endl, log_message
+
 DEFAULT_LACUNARITY = 2.0
 DEFAULT_GAIN = 0.65
 DEFAULT_OCTAVES = 7
+DEBUG_MODE = True
 
 
-@log_call
-def generate_world(world, width, height, chunk_width, chunk_height, num_chunks_x, num_chunks_y):
-    res = [[Chunk(x=i, y=j, width=chunk_width, height=chunk_height, debug=True) for i in xrange(num_chunks_x)] for j in xrange(num_chunks_y)]
+class WorldBuilder(object):
+    """ Handle building the world """
 
-    log_message(res[0][0].name)
-    base = random.randint(-chunk_width, chunk_width)
-    for j in xrange(height):
-        for i in xrange(width):
-            (x, y) = world.to_chunk_coords(x=i, y=j)
+    def __init__(self, world_width, world_height, chunk_width, chunk_height):
+        self.world_width = world_width
+        self.world_height = world_height
+        
+        self.chunk_width = chunk_width
+        self.chunk_height = chunk_height
 
-            pos_x = int(i / chunk_width )
-            pos_y = int(j / chunk_height)
-
-            chunk = res[pos_y][pos_x]
-            chunk.raw_map[y][x] = fractal(x=i, y=j, hgrid=width, base=base)
-
-    log_message('Created {x} chunks.'.format(x=num_chunks_x*num_chunks_y))
-    log_message('Chunk size: {x}'.format(x=chunk_width))
-    world.map = res
+        self.num_chunks_x = self.world_width / self.chunk_width
+        self.num_chunks_y = self.world_height / self.chunk_height
 
 
-def fractal(x, y, hgrid, base, num_octaves=DEFAULT_OCTAVES, lacunarity=DEFAULT_LACUNARITY, gain=DEFAULT_GAIN):
-    """ A more refined approach but has a much slower run time """
-    noise = []
-    frequency = 1.0 / hgrid
-    amplitude = gain
+    def __build_blank_map(self):
+        blank_map = []
+        for j in xrange(self.num_chunks_y):
+            blank_map.append([])
+            for i in xrange(self.num_chunks_x):
+                blank_map[j].append(
+                    Chunk(x=i, y=j, width=self.chunk_width, height=self.chunk_height, debug=DEBUG_MODE))
 
-    for i in xrange(num_octaves):
-        noise.append(
-            snoise2(
-                x=x * frequency,
-                y=y * frequency,
-                base=base
-            ) * amplitude
-        )
+        return blank_map
 
-        frequency *= lacunarity
-        amplitude *= gain
+    def generate_world(self):
+        tiles = self.__build_blank_map()
+        for chunks in tiles:
+            for chunk in chunks:
+                self.__generate_noise(chunk)
 
-    return sum(noise)
+        log_message('Created {x} chunks.'.format(
+            x=self.num_chunks_x * self.num_chunks_y))
+        log_message('Chunk size: {x}'.format(x=self.chunk_width))
+
+        return tiles
+
+
+    def __generate_noise(self, chunk):
+        base = random.randint(-self.chunk_width, self.chunk_width)
+        for j in xrange(chunk.height):
+            for i in xrange(chunk.width):
+                chunk.raw_map[j][i] = self.__fractal(
+                    x=i, y=j, hgrid=self.world_width, base=base)
+
+    def __fractal(self, x, y, hgrid, base, num_octaves=DEFAULT_OCTAVES, lacunarity=DEFAULT_LACUNARITY, gain=DEFAULT_GAIN):
+        """ A more refined approach but has a much slower run time """
+        noise = []
+        frequency = 1.0 / hgrid
+        amplitude = gain
+
+        for i in xrange(num_octaves):
+            noise.append(
+                snoise2(
+                    x=x * frequency,
+                    y=y * frequency,
+                    base=base
+                ) * amplitude
+            )
+
+            frequency *= lacunarity
+            amplitude *= gain
+
+        return sum(noise)

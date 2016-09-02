@@ -38,16 +38,19 @@ class GameEngine(object):
             SCREEN_HEIGHT,
             self.title,
             False
-        )
-        self.world.load_actors()        
+        )       
         self.player = self.world.get_player()
         self.print_game_info()
 
 
     def generate_new_game(self):
         self.world = World(chunk_dir=self.save_dir)
+        self.world.on_new_game()
+
         self.factory = ActorFactory(world=self.world)
         self.factory.make_actors()
+        self.world.actors = self.world.get_loaded_actors()
+        
         save_chunks(world=self.world, save_dir=self.save_dir)
 
     def get_loaded_game(self, loaded_attributes):
@@ -97,8 +100,8 @@ class GameEngine(object):
         log_message('\t Size:       {x}'.format(
             x=(self.world.width, self.world.height)))
         log_message('\t Chunks:     {x}'.format(
-            x=self.world.num_chunks_x * self.world.num_chunks_y))
-        log_message('\t Chunk Size: {x}'.format(x=self.world.chunk_width))
+            x=self.world.chunk_manager.num_chunks_x * self.world.chunk_manager.num_chunks_y))
+        log_message('\t Chunk Size: {x}'.format(x=self.world.chunk_manager.chunk_width))
         log_message('\t Actors:     {x}'.format(x=len(self.world.actors)))
         log_endl()
         log_message('Player Data:')
