@@ -1,5 +1,6 @@
-import random
 import sys
+import math
+import random
 from noise import snoise2
 from chunk import Chunk
 from progue.utils.file_management import load_chunk, save_chunk
@@ -17,13 +18,12 @@ class WorldBuilder(object):
     def __init__(self, world_width, world_height, chunk_width, chunk_height):
         self.world_width = world_width
         self.world_height = world_height
-        
+
         self.chunk_width = chunk_width
         self.chunk_height = chunk_height
 
         self.num_chunks_x = self.world_width / self.chunk_width
         self.num_chunks_y = self.world_height / self.chunk_height
-
 
     def __build_blank_map(self):
         blank_map = []
@@ -35,30 +35,34 @@ class WorldBuilder(object):
 
         return blank_map
 
-    def generate_world(self):
+    def make_map(self):
+        res = []
+        base = random.randint(-self.world_width, self.world_width)
+
+        for j in xrange(self.world_height):
+            res.append([])
+            for i in xrange(self.world_width):
+                res[j].append(self.__fractal(
+                    x=i, y=j, hgrid=self.world_width, base=base))
+        return res
+
+    def chunkify_map(self, to_chunkify):
         tiles = self.__build_blank_map()
-        for j in xrange(self.num_chunks_y):
-            for i in xrange(self.num_chunks_y):
-                chunk = tiles[j][i]
-                self.__generate_noise(chunk)
-        """
-        for chunks in tiles:
-            for chunk in chunks:
-                log_message(chunk)
-        """
+        for j in xrange(len(to_chunkify)):
+            for i in xrange(len(to_chunkify[j])):
+                (chunk_x, chunk_y) = (int(math.floor(i / self.chunk_width)), int(math.floor(j / self.chunk_height)))
+                (x, y) = (i % self.chunk_width, j % self.chunk_height)
+                tiles[chunk_y][chunk_x].raw_map[y][x] = to_chunkify[j][i]
+        return tiles
+
+    def generate_world(self):
+        to_chunkify = self.make_map()
+        tiles = self.chunkify_map(to_chunkify)
         log_message('Created {x} chunks.'.format(
             x=self.num_chunks_x * self.num_chunks_y))
         log_message('Chunk size: {x}'.format(x=self.chunk_width))
 
         return tiles
-
-
-    def __generate_noise(self, chunk):
-        base = random.randint(-self.chunk_width, self.chunk_width)
-        for j in xrange(chunk.height):
-            for i in xrange(chunk.width):
-                chunk.raw_map[j][i] = self.__fractal(
-                    x=i, y=j, hgrid=self.chunk_width, base=base)
 
     def __fractal(self, x, y, hgrid, base, num_octaves=DEFAULT_OCTAVES, lacunarity=DEFAULT_LACUNARITY, gain=DEFAULT_GAIN):
         """ A more refined approach but has a much slower run time """

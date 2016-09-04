@@ -35,8 +35,6 @@ class ChunkManager(object):
         (x, y) = self.get_actor_chunk_num(player)
         self.loaded_chunk = self.__load_chunk(x=x, y=y)
         
-        log_message(self.loaded_chunk)
-
         return self.loaded_chunk
 
     def compute_chunk_bounds(self, x, y):

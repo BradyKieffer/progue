@@ -1,16 +1,6 @@
 import random
 from progue.tiles import *
 
-
-# Maxmimum values for tiles to appear
-THRESHOLDS = {
-    TILE_WATER: 0.0,
-    TILE_SAND: 0.2,
-    TILE_GROUND: 0.75,
-    TILE_WALL: 1.0  # For now this is unused
-}
-
-
 class Chunk(object):
 
     def __init__(self, x, y, width, height, debug=False):
@@ -32,19 +22,6 @@ class Chunk(object):
     def name(self):
         return 'chunk{x}{y}'.format(x=self.x, y=self.y)
 
-    def tile_num_map(self, num):
-        if num < THRESHOLDS[TILE_WATER]:
-            return TILES[TILE_WATER][random.randint(0, len(TILES[TILE_WATER]) - 1)]
-
-        elif num < THRESHOLDS[TILE_SAND]:
-            return TILES[TILE_SAND]
-
-        elif num < THRESHOLDS[TILE_GROUND]:
-            return TILES[TILE_GROUND]
-
-        else:
-            return TILES[TILE_WALL]
-
     def create_tile_map(self):
         height = len(self.raw_map)
         width = len(self.raw_map[0])
@@ -54,7 +31,7 @@ class Chunk(object):
                     if i == 0 or i == width - 1 or j == 0 or j == height - 1:
                         self.tiles[j][i] = TILES[TILE_DEBUG]
                 else:
-                    self.tiles[j][i] = self.tile_num_map(self.raw_map[j][i])
+                    self.tiles[j][i] = tile_num_map(self.raw_map[j][i])
 
     def tile_at(self, x, y):
         if self.in_bounds(x, y):
